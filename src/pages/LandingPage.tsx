@@ -1,6 +1,5 @@
 import Button from '../components/Button';
 import FeatureBadge from '../components/FeatureBadge';
-import Footer from '../components/Footer';
 import landingImage from '../assets/landing.png';
 
 export default function Landing() {
@@ -99,8 +98,6 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* Footer */}
-            <Footer />
         </div>
     );
 }
