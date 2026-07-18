@@ -46,7 +46,7 @@ export default function Watchlist({ selectedSymbol, onSelectSymbol }: WatchlistP
   const symbols = Object.keys(prices).sort();
 
   return (
-    <div className="bg-surface border border-border rounded-lg shadow-sm">
+    <div className="bg-surface border border-border rounded-lg shadow-sm h-full">
       <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-text-primary">Watchlist</h2>
         <span className="text-xs text-text-muted">{symbols.length} stocks</span>
