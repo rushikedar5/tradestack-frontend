@@ -9,25 +9,39 @@ export default function Dashboard() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [holdings, setHoldings] = useState<Holding[]>([]);
 
   useEffect(() => {
-    const fetchWallet = async () => {
-      try {
-        const response = await api.get('/wallet/balance');
-        setWallet(response.data.wallet);
-      } catch (err) {
-        setError('Failed to load wallet');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchWallet();
-  }, []);
+  const fetchData = async () => {
+    try {
+      const [walletRes, holdingsRes] = await Promise.all([
+        api.get('/wallet/balance'),
+        api.get('/holding'),
+      ]);
+
+      setWallet(walletRes.data.wallet);
+      setHoldings(holdingsRes.data.holdings);
+    } catch (err) {
+      setError('Failed to load dashboard data');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
+  interface Holding {
+    id: string;
+    symbol: string;
+    quantity: number;
+    avgPrice: string;
+  }
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-text-primary mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-semibold text-accent tracking-tight mb-6">Dashboard</h1>
 
       {loading && <p className="text-text-muted">Loading...</p>}
       {error && <p className="text-loss">{error}</p>}
@@ -43,7 +57,9 @@ export default function Dashboard() {
 
           <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
             <p className="text-sm text-text-muted mb-1">Holdings Value</p>
-            <p className="text-3xl font-bold text-text-primary font-mono">₹0.00</p>
+            <p className="text-3xl font-bold text-text-primary font-mono">
+              ₹{holdings.reduce((total, holding) => total + (holding.quantity * parseFloat(holding.avgPrice)), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </p>
           </div>
 
           <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
