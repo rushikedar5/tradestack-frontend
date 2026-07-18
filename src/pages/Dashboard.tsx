@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
+import { socket } from '../socket';
 
 interface Wallet {
   balance: string;
@@ -10,33 +11,52 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [holdings, setHoldings] = useState<Holding[]>([]);
+  const [prices, setPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const [walletRes, holdingsRes] = await Promise.all([
-        api.get('/wallet/balance'),
-        api.get('/holding'),
-      ]);
+    const handlePriceUpdate = (data: PriceUpdate) => {
+      setPrices((prev) => ({ ...prev, [data.symbol]: data.price }));
+    };
 
-      setWallet(walletRes.data.wallet);
-      setHoldings(holdingsRes.data.holdings);
-    } catch (err) {
-      setError('Failed to load dashboard data');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    socket.on('price_update', handlePriceUpdate);
 
-  fetchData();
-}, []);
+    return () => {
+      socket.off('price_update', handlePriceUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [walletRes, holdingsRes] = await Promise.all([
+          api.get('/wallet/balance'),
+          api.get('/holding'),
+        ]);
+
+        setWallet(walletRes.data.wallet);
+        setHoldings(holdingsRes.data.holdings);
+      } catch (err) {
+        setError('Failed to load dashboard data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   interface Holding {
     id: string;
     symbol: string;
     quantity: number;
     avgPrice: string;
+  }
+
+  interface PriceUpdate {
+    symbol: string;
+    price: number;
+    timestamp: number;
   }
 
   return (
@@ -66,7 +86,18 @@ export default function Dashboard() {
             <p className="text-sm text-text-muted mb-1">Total P&L</p>
             <p className="text-3xl font-bold text-profit font-mono">₹0.00</p>
           </div>
+
+          <div className="mt-6 bg-surface border border-border rounded-lg p-4">
+            <p className="text-sm text-text-muted mb-2">Live Prices (temporary debug view)</p>
+            {Object.entries(prices).map(([symbol, price]) => (
+              <p key={symbol} className="font-mono text-text-primary">
+                {symbol}: ${price.toFixed(2)}
+              </p>
+            ))}
+          </div>
         </div>
+
+
       )}
     </div>
   );
