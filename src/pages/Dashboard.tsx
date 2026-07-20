@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import Watchlist from '../components/WatchList';
 import PriceChart from '../components/PriceChart';
 import OrderModal from '../components/OrderModal';
+import { Wallet, Briefcase, TrendingUp } from 'lucide-react';
 
 interface Wallet {
   balance: string;
@@ -54,22 +55,31 @@ export default function Dashboard() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
-              <p className="text-sm text-text-muted mb-1">Wallet Balance</p>
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet size={16} className="text-accent" />
+                <p className="text-sm text-text-muted">Wallet Balance</p>
+              </div>
               <p className="text-3xl font-bold text-text-primary font-mono">
-                ${wallet ? parseFloat(wallet.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}
+                ${wallet ? parseFloat(wallet.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00'}
               </p>
             </div>
 
             <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
-              <p className="text-sm text-text-muted mb-1">Holdings Value</p>
-              <p className="text-3xl font-bold text-text-primary font-mono">
-                ${holdings.reduce((total, h) => total + h.quantity * parseFloat(h.avgPrice), 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase size={16} className="text-text-muted" />
+                <p className="text-sm text-text-muted">Holdings Value</p>
+              </div>
+              <p className="text-3xl font-semibold text-text-primary font-mono">
+                ${holdings.reduce((total, h) => total + h.quantity * parseFloat(h.avgPrice), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
 
             <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
-              <p className="text-sm text-text-muted mb-1">Total P&L</p>
-              <p className="text-3xl font-bold text-profit font-mono">$0.00</p>
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp size={16} className="text-text-muted" />
+                <p className="text-sm text-text-muted">Total P&L</p>
+              </div>
+              <p className="text-3xl font-semibold text-profit font-mono">$0.00</p>
             </div>
           </div>
 
@@ -87,9 +97,18 @@ export default function Dashboard() {
             </div>
 
             <div className="lg:col-span-3 bg-surface border border-border rounded-lg shadow-sm p-4 flex flex-col">
-              <p className="text-sm font-semibold text-text-primary mb-3">
-                {selectedSymbol} — Live Chart
-              </p>
+              <div className="flex items-center gap-2 mb-3">
+                <p className="text-sm font-semibold text-text-primary">
+                  {selectedSymbol} — Live Chart
+                </p>
+                <span className="flex items-center gap-1.5 text-xs text-profit">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-profit opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-profit"></span>
+                  </span>
+                  Live
+                </span>
+              </div>
               <div className="flex-1 min-h-100">
                 <PriceChart symbol={selectedSymbol} />
               </div>
