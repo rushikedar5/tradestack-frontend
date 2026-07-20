@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
+import { socket } from '../socket';
 import Watchlist from '../components/WatchList';
 import PriceChart from '../components/PriceChart';
 import OrderModal from '../components/OrderModal';
@@ -19,6 +20,7 @@ interface Holding {
 export default function Dashboard() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [holdings, setHoldings] = useState<Holding[]>([]);
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
@@ -43,6 +45,21 @@ export default function Dashboard() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    const handlePriceUpdate = (data: { symbol: string; price: number }) => {
+      setLivePrices((prev) => ({ ...prev, [data.symbol]: data.price }));
+    };
+    socket.on('price_update', handlePriceUpdate);
+    return () => { socket.off('price_update', handlePriceUpdate); };
+  }, []);
+
+  const totalInvested = holdings.reduce((sum, h) => sum + h.quantity * parseFloat(h.avgPrice), 0);
+  const totalLiveValue = holdings.reduce((sum, h) => {
+    const price = livePrices[h.symbol] ?? parseFloat(h.avgPrice);
+    return sum + h.quantity * price;
+  }, 0);
+  const totalPnl = totalLiveValue - totalInvested;
 
   return (
     <div className="p-8">
@@ -70,7 +87,7 @@ export default function Dashboard() {
                 <p className="text-sm text-text-muted">Holdings Value</p>
               </div>
               <p className="text-3xl font-semibold text-text-primary font-mono">
-                ${holdings.reduce((total, h) => total + h.quantity * parseFloat(h.avgPrice), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                ${totalLiveValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
 
@@ -79,7 +96,9 @@ export default function Dashboard() {
                 <TrendingUp size={16} className="text-text-muted" />
                 <p className="text-sm text-text-muted">Total P&L</p>
               </div>
-              <p className="text-3xl font-semibold text-profit font-mono">$0.00</p>
+              <p className={`text-3xl font-semibold font-mono ${totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
+                {totalPnl >= 0 ? '+' : ''}${Math.abs(totalPnl).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </p>
             </div>
           </div>
 

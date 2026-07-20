@@ -6,6 +6,10 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import Orders from './pages/Orders';
+import Holdings from './pages/Holdings';
+import Positions from './pages/Postions';
+import Funds from './pages/Funds';
 
 function App() {
   return (
@@ -18,6 +22,26 @@ function App() {
         <Route path="dashboard" element={
           <ProtectedRoute>
               <Dashboard />
+          </ProtectedRoute>
+          }/>
+          <Route path="orders" element={
+          <ProtectedRoute>
+              <Orders />
+          </ProtectedRoute>
+          }/>
+          <Route path="holdings" element={
+          <ProtectedRoute>
+              <Holdings />
+          </ProtectedRoute>
+          }/>
+          <Route path="positions" element={
+          <ProtectedRoute>
+              <Positions />
+          </ProtectedRoute>
+          }/>
+          <Route path="funds" element={
+          <ProtectedRoute>
+              <Funds />
           </ProtectedRoute>
           }/>
       </Routes>
