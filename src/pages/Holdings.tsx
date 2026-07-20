@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { socket } from '../socket';
+import { useLivePrices } from '../context/LivePricesContext';
 
 interface Holding {
   id: string;
@@ -11,7 +11,7 @@ interface Holding {
 
 export default function Holdings() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
-  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  const livePrices = useLivePrices();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -28,16 +28,6 @@ export default function Holdings() {
       }
     };
     fetchHoldings();
-  }, []);
-
-  useEffect(() => {
-    const handlePriceUpdate = (data: { symbol: string; price: number }) => {
-      setLivePrices((prev) => ({ ...prev, [data.symbol]: data.price }));
-    };
-    socket.on('price_update', handlePriceUpdate);
-    return () => {
-      socket.off('price_update', handlePriceUpdate);
-    };
   }, []);
 
   const totalValue = holdings.reduce((sum, h) => {

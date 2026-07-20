@@ -10,12 +10,14 @@ import Orders from './pages/Orders';
 import Holdings from './pages/Holdings';
 import Positions from './pages/Postions';
 import Funds from './pages/Funds';
+import { LivePricesProvider } from './context/LivePricesContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
+    <LivePricesProvider>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
@@ -44,9 +46,10 @@ function App() {
               <Funds />
           </ProtectedRoute>
           }/>
-      </Routes>
-      <Footer />
-    </BrowserRouter>
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </LivePricesProvider>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
-import { socket } from '../socket';
+import { useLivePrices } from '../context/LivePricesContext';
 import Watchlist from '../components/WatchList';
 import PriceChart from '../components/PriceChart';
 import OrderModal from '../components/OrderModal';
@@ -20,7 +20,7 @@ interface Holding {
 export default function Dashboard() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [holdings, setHoldings] = useState<Holding[]>([]);
-  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  const livePrices = useLivePrices();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
@@ -45,14 +45,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    const handlePriceUpdate = (data: { symbol: string; price: number }) => {
-      setLivePrices((prev) => ({ ...prev, [data.symbol]: data.price }));
-    };
-    socket.on('price_update', handlePriceUpdate);
-    return () => { socket.off('price_update', handlePriceUpdate); };
-  }, []);
 
   const totalInvested = holdings.reduce((sum, h) => sum + h.quantity * parseFloat(h.avgPrice), 0);
   const totalLiveValue = holdings.reduce((sum, h) => {
