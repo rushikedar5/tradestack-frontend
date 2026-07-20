@@ -8,6 +8,7 @@ interface Order {
   side: string;
   quantity: number;
   filledPrice: string | null;
+  limitPrice: string | null;
   status: string;
   createdAt: string;
 }
@@ -16,25 +17,41 @@ export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
   useEffect(() => {
-  const fetchOrders = async () => {
+    const fetchOrders = async () => {
+      try {
+        const res = await api.get('/orders');
+        setOrders(res.data.orders);
+      } catch (err) {
+        setError('Failed to load orders');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+
+    const interval = setInterval(fetchOrders, 3000); // refetch every 3s
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCancel = async (orderId: string) => {
+    setCancelling(orderId);
     try {
-      const res = await api.get('/orders');
-      setOrders(res.data.orders);
+      await api.patch(`/orders/${orderId}/cancel`);
+      // Optimistically flip to CANCELLED immediately without waiting for the next poll
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: 'CANCELLED' } : o))
+      );
     } catch (err) {
-      setError('Failed to load orders');
-      console.error(err);
+      console.error('Failed to cancel order', err);
     } finally {
-      setLoading(false);
+      setCancelling(null);
     }
   };
-
-  fetchOrders();
-
-  const interval = setInterval(fetchOrders, 3000); // refetch every 3s
-  return () => clearInterval(interval);
-}, []);
 
   const statusColor: Record<string, string> = {
     FILLED: 'text-profit bg-profit/10',
@@ -67,6 +84,7 @@ export default function Orders() {
                   <th className="text-right font-medium px-4 py-3">Price</th>
                   <th className="text-left font-medium px-4 py-3">Status</th>
                   <th className="text-right font-medium px-4 py-3">Time</th>
+                  <th className="text-right font-medium px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -79,7 +97,11 @@ export default function Orders() {
                     <td className="px-4 py-3 text-text-muted">{order.type}</td>
                     <td className="px-4 py-3 text-right font-mono text-text-primary">{order.quantity}</td>
                     <td className="px-4 py-3 text-right font-mono text-text-primary">
-                      {order.filledPrice ? `$${parseFloat(order.filledPrice).toFixed(2)}` : '—'}
+                      {order.filledPrice
+                        ? `$${parseFloat(order.filledPrice).toFixed(2)}`
+                        : order.limitPrice
+                          ? `$${parseFloat(order.limitPrice).toFixed(2)} (limit)`
+                          : '—'}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-medium px-2 py-1 rounded ${statusColor[order.status]}`}>
@@ -91,6 +113,20 @@ export default function Orders() {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                       })}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {order.status === 'PENDING' ? (
+                        <button
+                          id={`cancel-${order.id}`}
+                          onClick={() => handleCancel(order.id)}
+                          disabled={cancelling === order.id}
+                          className="text-xs text-loss border border-loss/40 px-2.5 py-1 rounded hover:bg-loss/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {cancelling === order.id ? 'Cancelling…' : 'Cancel'}
+                        </button>
+                      ) : (
+                        <span className="text-text-muted text-xs">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
