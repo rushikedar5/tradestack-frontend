@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
 import { useLivePrices } from '../context/LivePricesContext';
+import { DollarSign, Briefcase, TrendingUp } from 'lucide-react';
 
 interface Holding {
   id: string;
@@ -53,19 +54,28 @@ export default function Holdings() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
-              <p className="text-sm text-text-muted mb-1">Invested</p>
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign size={16} className="text-text-muted" />
+                <p className="text-sm text-text-muted">Invested</p>
+              </div>
               <p className="text-2xl font-semibold text-text-primary font-mono">
                 ${totalInvested.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
-              <p className="text-sm text-text-muted mb-1">Current Value</p>
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase size={16} className="text-text-muted" />
+                <p className="text-sm text-text-muted">Current Value</p>
+              </div>
               <p className="text-2xl font-semibold text-text-primary font-mono">
                 ${totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="bg-surface border border-border rounded-lg shadow-sm p-6">
-              <p className="text-sm text-text-muted mb-1">Total P&L</p>
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp size={16} className="text-text-muted" />
+                <p className="text-sm text-text-muted">Total P&L</p>
+              </div>
               <p className={`text-2xl font-semibold font-mono ${totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
                 {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
