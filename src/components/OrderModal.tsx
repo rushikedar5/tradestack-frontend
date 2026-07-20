@@ -7,23 +7,23 @@ interface OrderModalProps {
   symbol: string;
   currentPrice: number;
   side: 'BUY' | 'SELL';
-  /** For SELL orders — the number of shares the user currently holds */
   maxQuantity?: number;
   onClose: () => void;
   onSuccess: () => void;
 }
 
 export default function OrderModal({ symbol, currentPrice, side, maxQuantity, onClose, onSuccess }: OrderModalProps) {
+  const [orderType, setOrderType] = useState<'MARKET' | 'LIMIT'>('MARKET');
   const [quantity, setQuantity] = useState(1);
+  const [limitPrice, setLimitPrice] = useState(currentPrice);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const total = quantity * currentPrice;
+  const effectivePrice = orderType === 'MARKET' ? currentPrice : limitPrice;
+  const total = quantity * effectivePrice;
 
-  // For SELL: treat missing holding as 0 shares owned
   const ownedQty = side === 'SELL' ? (maxQuantity ?? 0) : undefined;
   const hasNoShares = side === 'SELL' && ownedQty === 0;
-
   const atMax = side === 'SELL' && ownedQty !== undefined && quantity >= ownedQty;
   const atMin = quantity <= 1;
 
@@ -45,8 +45,12 @@ export default function OrderModal({ symbol, currentPrice, side, maxQuantity, on
     setError('');
     setLoading(true);
     try {
-      const endpoint = side === 'BUY' ? '/orders/buy' : '/orders/sell';
-      await api.post(endpoint, { symbol, quantity, price: currentPrice });
+      if (orderType === 'MARKET') {
+        const endpoint = side === 'BUY' ? '/orders/buy' : '/orders/sell';
+        await api.post(endpoint, { symbol, quantity, price: currentPrice });
+      } else {
+        await api.post('/orders/limit', { symbol, side, quantity, limitPrice });
+      }
       onSuccess();
       onClose();
     } catch (err) {
@@ -70,6 +74,30 @@ export default function OrderModal({ symbol, currentPrice, side, maxQuantity, on
           Market price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
         </p>
 
+        {/* Order type toggle */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setOrderType('MARKET')}
+            className={`flex-1 text-sm font-medium py-2 rounded-lg border transition-colors ${
+              orderType === 'MARKET'
+                ? 'bg-accent text-white border-accent'
+                : 'border-border text-text-muted hover:text-text-primary'
+            }`}
+          >
+            Market
+          </button>
+          <button
+            onClick={() => setOrderType('LIMIT')}
+            className={`flex-1 text-sm font-medium py-2 rounded-lg border transition-colors ${
+              orderType === 'LIMIT'
+                ? 'bg-accent text-white border-accent'
+                : 'border-border text-text-muted hover:text-text-primary'
+            }`}
+          >
+            Limit
+          </button>
+        </div>
+
         {error && (
           <p className="bg-red-500/10 text-loss text-sm px-3 py-2 rounded mb-4">
             {error}
@@ -80,7 +108,6 @@ export default function OrderModal({ symbol, currentPrice, side, maxQuantity, on
         <div className="mb-3">
           <label className="block text-xs font-medium text-text-muted mb-2">Quantity</label>
           <div className="flex items-center gap-3">
-            {/* Decrement */}
             <button
               onClick={decrement}
               disabled={atMin}
@@ -92,7 +119,6 @@ export default function OrderModal({ symbol, currentPrice, side, maxQuantity, on
               −
             </button>
 
-            {/* Input */}
             <input
               type="number"
               min={1}
@@ -102,7 +128,6 @@ export default function OrderModal({ symbol, currentPrice, side, maxQuantity, on
               className="flex-1 text-center border border-border rounded-lg py-2 bg-background text-text-primary font-mono text-sm focus:outline-none focus:ring-1 focus:ring-accent"
             />
 
-            {/* Increment */}
             <button
               onClick={increment}
               disabled={atMax}
@@ -116,7 +141,6 @@ export default function OrderModal({ symbol, currentPrice, side, maxQuantity, on
             </button>
           </div>
 
-          {/* Cap / no-shares warning */}
           {hasNoShares && (
             <p className="mt-2 text-xs text-loss flex items-center gap-1.5">
               <span>✕</span>
@@ -131,7 +155,25 @@ export default function OrderModal({ symbol, currentPrice, side, maxQuantity, on
           )}
         </div>
 
-        {/* Estimated total */}
+        {/* Limit price input — only shown for LIMIT orders */}
+        {orderType === 'LIMIT' && (
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-text-muted mb-2">Limit Price</label>
+            <input
+              type="number"
+              step="0.01"
+              value={limitPrice}
+              onChange={(e) => setLimitPrice(Number(e.target.value))}
+              className="w-full border border-border rounded-lg py-2 px-3 bg-background text-text-primary font-mono text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+            <p className="mt-1.5 text-xs text-text-muted">
+              {side === 'BUY'
+                ? 'Executes automatically when price drops to or below this.'
+                : 'Executes automatically when price rises to or above this.'}
+            </p>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-6 text-sm">
           <span className="text-text-muted">
             Estimated {side === 'BUY' ? 'cost' : 'proceeds'}

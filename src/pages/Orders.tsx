@@ -18,19 +18,23 @@ export default function Orders() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await api.get('/orders');
-        setOrders(res.data.orders);
-      } catch (err) {
-        setError('Failed to load orders');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
-  }, []);
+  const fetchOrders = async () => {
+    try {
+      const res = await api.get('/orders');
+      setOrders(res.data.orders);
+    } catch (err) {
+      setError('Failed to load orders');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchOrders();
+
+  const interval = setInterval(fetchOrders, 3000); // refetch every 3s
+  return () => clearInterval(interval);
+}, []);
 
   const statusColor: Record<string, string> = {
     FILLED: 'text-profit bg-profit/10',
