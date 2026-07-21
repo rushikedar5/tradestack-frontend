@@ -11,6 +11,10 @@ import Holdings from './pages/Holdings';
 import Positions from './pages/Postions';
 import Funds from './pages/Funds';
 import { LivePricesProvider } from './context/LivePricesContext';
+import About from './pages/About';
+import Products from './pages/Products';
+import Pricing from './pages/Pricing';
+import Support from './pages/Support';
 
 function App() {
   return (
@@ -21,6 +25,10 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/support" element={<Support />} />
         <Route path="dashboard" element={
           <ProtectedRoute>
               <Dashboard />

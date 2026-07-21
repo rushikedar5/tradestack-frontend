@@ -56,10 +56,10 @@ export default function Navbar() {
       ) : (
         <div className="flex items-center gap-10 text-text-muted text-[15px]">
           <Link to="/login" className="hover:text-text-primary transition-colors">SignIn</Link>
-          <a href="#" className="hover:text-text-primary transition-colors">About</a>
-          <a href="#" className="hover:text-text-primary transition-colors">Products</a>
-          <a href="#" className="hover:text-text-primary transition-colors">Pricing</a>
-          <a href="#" className="hover:text-text-primary transition-colors">Support</a>
+          <Link to="/about" className="hover:text-text-primary transition-colors">About</Link>
+          <Link to="/products" className="hover:text-text-primary transition-colors">Products</Link>
+          <Link to="/pricing" className="hover:text-text-primary transition-colors">Pricing</Link>
+          <Link to="/support" className="hover:text-text-primary transition-colors">Support</Link>
         </div>
       )}
     </nav>

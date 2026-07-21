@@ -1,17 +1,5 @@
 import { useEffect, useState } from 'react';
-import { socket } from '../socket';
-
-interface PriceUpdate {
-    symbol: string;
-    price: number;
-    timestamp: number;
-}
-
-interface PriceState {
-    price: number;
-    prevPrice: number;
-    dayOpen: number;
-}
+import { getLivePrices, subscribeLivePrices } from '../livePrices';
 
 interface WatchlistProps {
     selectedSymbol: string;
@@ -21,28 +9,11 @@ interface WatchlistProps {
 }
 
 export default function Watchlist({ selectedSymbol, onSelectSymbol, onBuyClick, onSellClick }: WatchlistProps) {
-    const [prices, setPrices] = useState<Record<string, PriceState>>({});
+    const [prices, setPrices] = useState(getLivePrices);
 
     useEffect(() => {
-        const handlePriceUpdate = (data: PriceUpdate) => {
-            setPrices((prev) => {
-                const existing = prev[data.symbol];
-                return {
-                    ...prev,
-                    [data.symbol]: {
-                        price: data.price,
-                        prevPrice: existing ? existing.price : data.price,
-                        dayOpen: existing ? existing.dayOpen : data.price,
-                    },
-                };
-            });
-        };
-
-        socket.on('price_update', handlePriceUpdate);
-
-        return () => {
-            socket.off('price_update', handlePriceUpdate);
-        };
+        // Re-read the shared store on every price tick and trigger a render
+        return subscribeLivePrices(() => setPrices({ ...getLivePrices() }));
     }, []);
 
     const symbols = Object.keys(prices).sort();
