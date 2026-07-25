@@ -58,7 +58,7 @@ export default function Holdings() {
                 <DollarSign size={16} className="text-text-muted" />
                 <p className="text-sm text-text-muted">Invested</p>
               </div>
-              <p className="text-2xl font-semibold text-text-primary font-mono">
+              <p className="text-3xl font-semibold text-text-primary font-mono">
                 ${totalInvested.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
@@ -67,7 +67,7 @@ export default function Holdings() {
                 <Briefcase size={16} className="text-text-muted" />
                 <p className="text-sm text-text-muted">Current Value</p>
               </div>
-              <p className="text-2xl font-semibold text-text-primary font-mono">
+              <p className="text-3xl font-semibold text-text-primary font-mono">
                 ${totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
@@ -76,7 +76,7 @@ export default function Holdings() {
                 <TrendingUp size={16} className="text-text-muted" />
                 <p className="text-sm text-text-muted">Total P&L</p>
               </div>
-              <p className={`text-2xl font-semibold font-mono ${totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
+              <p className={`text-3xl font-semibold font-mono ${totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
                 {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>

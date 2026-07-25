@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '../api/client';
-import { useLivePrices } from '../context/LivePricesContext';
-import Watchlist from '../components/WatchList';
-import PriceChart from '../components/PriceChart';
-import OrderModal from '../components/OrderModal';
-import { Wallet, Briefcase, TrendingUp } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import { api } from "../api/client";
+import { useLivePrices } from "../context/LivePricesContext";
+import Watchlist from "../components/WatchList";
+import PriceChart from "../components/PriceChart";
+import OrderModal from "../components/OrderModal";
+import { Wallet, Briefcase, TrendingUp } from "lucide-react";
+import NewsSummary from "../components/NewsSummary";
 
 interface Wallet {
   balance: string;
@@ -22,20 +23,25 @@ export default function Dashboard() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const livePrices = useLivePrices();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
-  const [activeOrder, setActiveOrder] = useState<{ symbol: string; price: number; side: 'BUY' | 'SELL'; maxQuantity?: number } | null>(null);
+  const [error, setError] = useState("");
+  const [selectedSymbol, setSelectedSymbol] = useState("AAPL");
+  const [activeOrder, setActiveOrder] = useState<{
+    symbol: string;
+    price: number;
+    side: "BUY" | "SELL";
+    maxQuantity?: number;
+  } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       const [walletRes, holdingsRes] = await Promise.all([
-        api.get('/wallet/balance'),
-        api.get('/holding'),
+        api.get("/wallet/balance"),
+        api.get("/holding"),
       ]);
       setWallet(walletRes.data.wallet);
       setHoldings(holdingsRes.data.holdings);
     } catch (err) {
-      setError('Failed to load dashboard data');
+      setError("Failed to load dashboard data");
       console.error(err);
     } finally {
       setLoading(false);
@@ -46,7 +52,10 @@ export default function Dashboard() {
     fetchData();
   }, [fetchData]);
 
-  const totalInvested = holdings.reduce((sum, h) => sum + h.quantity * parseFloat(h.avgPrice), 0);
+  const totalInvested = holdings.reduce(
+    (sum, h) => sum + h.quantity * parseFloat(h.avgPrice),
+    0,
+  );
   const totalLiveValue = holdings.reduce((sum, h) => {
     const price = livePrices[h.symbol] ?? parseFloat(h.avgPrice);
     return sum + h.quantity * price;
@@ -55,7 +64,9 @@ export default function Dashboard() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-semibold text-accent tracking-tight mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-semibold text-accent tracking-tight mb-6">
+        Dashboard
+      </h1>
 
       {loading && <p className="text-text-muted">Loading...</p>}
       {error && <p className="text-loss">{error}</p>}
@@ -69,7 +80,12 @@ export default function Dashboard() {
                 <p className="text-sm text-text-muted">Wallet Balance</p>
               </div>
               <p className="text-3xl font-bold text-text-primary font-mono">
-                ${wallet ? parseFloat(wallet.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00'}
+                $
+                {wallet
+                  ? parseFloat(wallet.balance).toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                    })
+                  : "0.00"}
               </p>
             </div>
 
@@ -79,7 +95,10 @@ export default function Dashboard() {
                 <p className="text-sm text-text-muted">Holdings Value</p>
               </div>
               <p className="text-3xl font-semibold text-text-primary font-mono">
-                ${totalLiveValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                $
+                {totalLiveValue.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                })}
               </p>
             </div>
 
@@ -88,8 +107,13 @@ export default function Dashboard() {
                 <TrendingUp size={16} className="text-text-muted" />
                 <p className="text-sm text-text-muted">Total P&L</p>
               </div>
-              <p className={`text-3xl font-semibold font-mono ${totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
-                {totalPnl >= 0 ? '+' : ''}${Math.abs(totalPnl).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              <p
+                className={`text-3xl font-semibold font-mono ${totalPnl >= 0 ? "text-profit" : "text-loss"}`}
+              >
+                {totalPnl >= 0 ? "+" : ""}$
+                {Math.abs(totalPnl).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                })}
               </p>
             </div>
           </div>
@@ -99,10 +123,17 @@ export default function Dashboard() {
               <Watchlist
                 selectedSymbol={selectedSymbol}
                 onSelectSymbol={setSelectedSymbol}
-                onBuyClick={(symbol, price) => setActiveOrder({ symbol, price, side: 'BUY' })}
+                onBuyClick={(symbol, price) =>
+                  setActiveOrder({ symbol, price, side: "BUY" })
+                }
                 onSellClick={(symbol, price) => {
                   const holding = holdings.find((h) => h.symbol === symbol);
-                  setActiveOrder({ symbol, price, side: 'SELL', maxQuantity: holding?.quantity });
+                  setActiveOrder({
+                    symbol,
+                    price,
+                    side: "SELL",
+                    maxQuantity: holding?.quantity,
+                  });
                 }}
               />
             </div>
@@ -124,6 +155,10 @@ export default function Dashboard() {
                 <PriceChart symbol={selectedSymbol} />
               </div>
             </div>
+          </div>
+
+          <div className="mt-6 w-full">
+            <NewsSummary symbol={selectedSymbol} />
           </div>
 
           {activeOrder && (
